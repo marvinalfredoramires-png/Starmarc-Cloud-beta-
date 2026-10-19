@@ -1,1 +1,651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stamarc Cloud | Personal Cloud Storage</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans h-screen flex flex-col overflow-hidden select-none">
 
+    <!-- Top Navigation Bar -->
+    <header class="h-16 border-b border-gray-800 bg-gray-950 px-6 flex items-center justify-between z-10">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-tr from-blue-600 to-indigo-500 p-2 rounded-xl shadow-lg shadow-blue-500/20">
+                <i data-lucide="cloud" class="w-6 h-6 text-white"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight tracking-wide bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">Stamarc Cloud</h1>
+                <span class="text-xs text-blue-400 font-medium tracking-wider uppercase">by Stamarc Studios</span>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="flex-1 max-w-xl mx-8">
+            <div class="relative">
+                <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="searchInput" placeholder="Buscar en Stamarc Cloud..." class="w-full bg-gray-900 border border-gray-800 text-sm rounded-lg pl-9 pr-4 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors">
+            </div>
+        </div>
+
+        <!-- Right User Actions -->
+        <div class="flex items-center space-x-4">
+            <button id="uploadBtnTop" class="hidden sm:flex items-center space-x-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md shadow-blue-600/20 cursor-pointer">
+                <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                <span>Subir archivo</span>
+            </button>
+            <div class="h-8 w-[1px] bg-gray-800"></div>
+            <div class="flex items-center space-x-3">
+                <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-sm text-white shadow-md">
+                    SS
+                </div>
+                <div class="hidden md:block">
+                    <p class="text-sm font-medium leading-none">Stamarc Admin</p>
+                    <p class="text-xs text-gray-400 mt-0.5">admin@stamarc.com</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <!-- Left Sidebar -->
+        <aside class="w-64 border-r border-gray-800 bg-gray-950 p-4 flex flex-col justify-between hidden md:flex">
+            <div class="space-y-6">
+                <!-- Action Button -->
+                <button id="uploadBtnSide" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-lg shadow-blue-600/20 transition-all cursor-pointer">
+                    <i data-lucide="plus" class="w-5 h-5"></i>
+                    <span>Nuevo archivo</span>
+                </button>
+
+                <!-- Navigation Links -->
+                <nav class="space-y-1">
+                    <button onclick="switchNav('files', this)" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-blue-600/10 text-blue-400 font-medium text-sm transition-colors cursor-pointer">
+                        <i data-lucide="hard-drive" class="w-4 h-4"></i>
+                        <span>Mis Archivos</span>
+                    </button>
+                    <button onclick="switchNav('recent', this)" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-900 hover:text-gray-200 text-sm transition-colors cursor-pointer">
+                        <i data-lucide="clock" class="w-4 h-4"></i>
+                        <span>Recientes</span>
+                    </button>
+                    <button onclick="switchNav('starred', this)" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-900 hover:text-gray-200 text-sm transition-colors cursor-pointer">
+                        <i data-lucide="star" class="w-4 h-4"></i>
+                        <span>Favoritos</span>
+                    </button>
+                    <button onclick="switchNav('trash', this)" class="nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-900 hover:text-gray-200 text-sm transition-colors cursor-pointer">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <span>Papelera</span>
+                    </button>
+                </nav>
+
+                <div class="pt-4 border-t border-gray-800" id="categoriesSection">
+                    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3">Categorías</span>
+                    <div class="mt-2 space-y-1">
+                        <button onclick="filterCategory('all')" class="cat-btn w-full flex items-center justify-between px-3 py-2 text-sm text-blue-400 bg-blue-500/10 rounded-lg cursor-pointer">
+                            <span class="flex items-center space-x-2"><i data-lucide="layers" class="w-4 h-4 text-blue-400"></i><span>Todos</span></span>
+                            <span id="count-all" class="text-xs bg-gray-800 px-2 py-0.5 rounded-full">0</span>
+                        </button>
+                        <button onclick="filterCategory('image')" class="cat-btn w-full flex items-center justify-between px-3 py-2 text-sm text-gray-400 hover:bg-gray-900 hover:text-gray-200 rounded-lg cursor-pointer">
+                            <span class="flex items-center space-x-2"><i data-lucide="image" class="w-4 h-4 text-emerald-400"></i><span>Imágenes</span></span>
+                            <span id="count-images" class="text-xs bg-gray-800 px-2 py-0.5 rounded-full">0</span>
+                        </button>
+                        <button onclick="filterCategory('document')" class="cat-btn w-full flex items-center justify-between px-3 py-2 text-sm text-gray-400 hover:bg-gray-900 hover:text-gray-200 rounded-lg cursor-pointer">
+                            <span class="flex items-center space-x-2"><i data-lucide="file-text" class="w-4 h-4 text-amber-400"></i><span>Documentos</span></span>
+                            <span id="count-documents" class="text-xs bg-gray-800 px-2 py-0.5 rounded-full">0</span>
+                        </button>
+                        <button onclick="filterCategory('media')" class="cat-btn w-full flex items-center justify-between px-3 py-2 text-sm text-gray-400 hover:bg-gray-900 hover:text-gray-200 rounded-lg cursor-pointer">
+                            <span class="flex items-center space-x-2"><i data-lucide="film" class="w-4 h-4 text-purple-400"></i><span>Multimedia</span></span>
+                            <span id="count-media" class="text-xs bg-gray-800 px-2 py-0.5 rounded-full">0</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Storage Indicator -->
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-4 space-y-3">
+                <div class="flex items-center justify-between text-xs text-gray-400">
+                    <span>Almacenamiento</span>
+                    <span id="storageText" class="font-medium text-gray-200">0 MB / 10 GB</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+                    <div id="storageBar" class="bg-gradient-to-r from-blue-500 to-indigo-500 h-full w-0 transition-all duration-300"></div>
+                </div>
+                <p class="text-xs text-gray-500">Servidor Privado Stamarc Studios</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main id="dropZone" class="flex-1 bg-gray-900 flex flex-col p-6 overflow-hidden relative transition-all">
+            
+            <!-- Hidden Input for File Selector -->
+            <input type="file" id="fileInput" class="hidden" multiple>
+
+            <!-- Top Header Controls -->
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 id="viewTitle" class="text-xl font-bold text-gray-100 flex items-center space-x-2">
+                        <span>Mis Archivos</span>
+                        <span id="currentFilterLabel" class="text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2.5 py-0.5 rounded-full font-normal">Todos</span>
+                    </h2>
+                    <p id="viewSubtitle" class="text-xs text-gray-400 mt-1">Arrastra y suelta tus archivos en cualquier lugar para subirlos</p>
+                </div>
+
+                <div class="flex items-center space-x-2 border border-gray-800 bg-gray-950 p-1 rounded-lg">
+                    <button id="viewGrid" class="p-1.5 rounded text-blue-400 bg-gray-800 hover:text-white transition-colors cursor-pointer">
+                        <i data-lucide="grid" class="w-4 h-4"></i>
+                    </button>
+                    <button id="viewList" class="p-1.5 rounded text-gray-400 hover:text-white transition-colors cursor-pointer">
+                        <i data-lucide="list" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Drag & Drop Zone Overlay -->
+            <div id="dropOverlay" class="absolute inset-0 bg-blue-600/10 border-2 border-dashed border-blue-500 m-4 rounded-2xl flex flex-col items-center justify-center pointer-events-none opacity-0 transition-opacity z-20 backdrop-blur-sm">
+                <i data-lucide="upload-cloud" class="w-16 h-16 text-blue-400 animate-bounce mb-2"></i>
+                <p class="text-lg font-semibold text-white">Suelta tus archivos aquí</p>
+                <p class="text-sm text-blue-300">Se guardarán en tu almacenamiento de Stamarc Cloud</p>
+            </div>
+
+            <!-- Upload Progress Bar -->
+            <div id="uploadProgressContainer" class="hidden mb-6 bg-gray-950 border border-gray-800 rounded-xl p-4 shadow-xl">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-3">
+                        <i data-lucide="loader-2" class="w-4 h-4 text-blue-400 animate-spin"></i>
+                        <span id="uploadStatusText" class="text-sm text-gray-300 font-medium">Procesando archivo...</span>
+                    </div>
+                    <span id="uploadPercentage" class="text-xs font-semibold text-blue-400">0%</span>
+                </div>
+                <div class="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                    <div id="uploadProgressBar" class="bg-blue-500 h-full w-0 transition-all duration-150"></div>
+                </div>
+            </div>
+
+            <!-- Files Display Container -->
+            <div id="filesContainer" class="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                <div id="filesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    <!-- Dynamic Files Generated Here -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="hidden h-full flex flex-col items-center justify-center text-center p-8">
+                    <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center text-gray-500 mb-4">
+                        <i data-lucide="folder-open" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-200">No hay archivos aquí</h3>
+                    <p class="text-sm text-gray-500 max-w-sm mt-1">Sube tus documentos, imágenes o archivos multimedia arrastrándolos a la pantalla.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="p-4 border-b border-gray-800 flex items-center justify-between bg-gray-950">
+                <div class="flex items-center space-x-3 truncate">
+                    <div id="modalIconContainer" class="p-2 bg-gray-800 rounded-lg text-blue-400 shrink-0">
+                        <i data-lucide="file" class="w-5 h-5"></i>
+                    </div>
+                    <div class="truncate">
+                        <h3 id="modalTitle" class="font-semibold text-sm text-gray-100 truncate">Nombre del archivo</h3>
+                        <p id="modalSub" class="text-xs text-gray-400">0 KB • Cargado recientemente</p>
+                    </div>
+                </div>
+                <button id="closeModal" class="p-1.5 text-gray-400 hover:text-white rounded-lg hover:bg-gray-800 cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div id="modalContent" class="flex-1 p-6 flex items-center justify-center overflow-auto min-h-[250px]">
+                <!-- Preview elements injected dynamically -->
+            </div>
+
+            <div class="p-4 border-t border-gray-800 bg-gray-950 flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <button id="modalDeleteBtn" class="px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors cursor-pointer">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <span id="deleteBtnText">Eliminar</span>
+                    </button>
+                    <button id="modalStarBtn" class="px-3 py-2 bg-gray-800 text-gray-300 hover:bg-gray-700 rounded-lg text-sm font-medium flex items-center space-x-1 transition-colors cursor-pointer" title="Marcar como favorito">
+                        <i data-lucide="star" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <button id="modalDownloadBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium flex items-center space-x-2 shadow-md shadow-blue-600/20 transition-all cursor-pointer">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span>Descargar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script>
+        // State Management
+        let files = [
+            {
+                id: '1',
+                name: 'Logo_Stamarc_Studios.png',
+                type: 'image',
+                size: 2450000,
+                date: 'Hace 2 horas',
+                url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80',
+                starred: true,
+                deleted: false
+            },
+            {
+                id: '2',
+                name: 'Arquitectura_Nube_v1.pdf',
+                type: 'document',
+                size: 4200000,
+                date: 'Ayer',
+                starred: false,
+                deleted: false
+            },
+            {
+                id: '3',
+                name: 'Demo_Presentacion.mp4',
+                type: 'media',
+                size: 18500000,
+                date: 'Hace 3 días',
+                starred: false,
+                deleted: false
+            }
+        ];
+
+        let currentNav = 'files';       // 'files', 'recent', 'starred', 'trash'
+        let currentCategory = 'all';    // 'all', 'image', 'document', 'media'
+        let searchQuery = '';
+        let viewMode = 'grid';          // 'grid' or 'list'
+        let activeModalFile = null;
+
+        // Element References
+        const dropZone = document.getElementById('dropZone');
+        const dropOverlay = document.getElementById('dropOverlay');
+        const fileInput = document.getElementById('fileInput');
+        const filesGrid = document.getElementById('filesGrid');
+        const emptyState = document.getElementById('emptyState');
+        const searchInput = document.getElementById('searchInput');
+        const currentFilterLabel = document.getElementById('currentFilterLabel');
+        const viewTitle = document.getElementById('viewTitle');
+        const viewSubtitle = document.getElementById('viewSubtitle');
+        const categoriesSection = document.getElementById('categoriesSection');
+        
+        // Modal Elements
+        const previewModal = document.getElementById('previewModal');
+        const closeModal = document.getElementById('closeModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalSub = document.getElementById('modalSub');
+        const modalContent = document.getElementById('modalContent');
+        const modalDeleteBtn = document.getElementById('modalDeleteBtn');
+        const deleteBtnText = document.getElementById('deleteBtnText');
+        const modalStarBtn = document.getElementById('modalStarBtn');
+        const modalDownloadBtn = document.getElementById('modalDownloadBtn');
+
+        // Action Buttons
+        const uploadBtnTop = document.getElementById('uploadBtnTop');
+        const uploadBtnSide = document.getElementById('uploadBtnSide');
+
+        // Helper Functions
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function getFileType(file) {
+            const extension = file.name.split('.').pop().toLowerCase();
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(extension) || file.type?.startsWith('image/')) {
+                return 'image';
+            }
+            if (['mp4', 'webm', 'mp3', 'wav', 'mov'].includes(extension) || file.type?.startsWith('video/') || file.type?.startsWith('audio/')) {
+                return 'media';
+            }
+            return 'document';
+        }
+
+        function getFileIcon(type) {
+            switch(type) {
+                case 'image': return '<i data-lucide="image" class="w-8 h-8 text-emerald-400"></i>';
+                case 'media': return '<i data-lucide="film" class="w-8 h-8 text-purple-400"></i>';
+                default: return '<i data-lucide="file-text" class="w-8 h-8 text-amber-400"></i>';
+            }
+        }
+
+        // Render UI Main Logic
+        function render() {
+            // Filter files based on navigation, category, and search query
+            const activeFiles = files.filter(f => {
+                if (currentNav === 'trash') return f.deleted === true;
+                if (f.deleted) return false;
+
+                if (currentNav === 'starred' && !f.starred) return false;
+                if (currentNav === 'recent' && f.date !== 'Ahora' && f.date !== 'Hace 2 horas' && f.date !== 'Ayer') {
+                    // Simulación temporal para demo
+                }
+
+                const matchesCat = currentCategory === 'all' || f.type === currentCategory;
+                const matchesSearch = f.name.toLowerCase().includes(searchQuery.toLowerCase());
+                return matchesCat && matchesSearch;
+            });
+
+            // Update Counts (Solo archivos activos no borrados)
+            const nonDeleted = files.filter(f => !f.deleted);
+            document.getElementById('count-all').innerText = nonDeleted.length;
+            document.getElementById('count-images').innerText = nonDeleted.filter(f => f.type === 'image').length;
+            document.getElementById('count-documents').innerText = nonDeleted.filter(f => f.type === 'document').length;
+            document.getElementById('count-media').innerText = nonDeleted.filter(f => f.type === 'media').length;
+
+            // Storage Calculation (Solo archivos activos)
+            const totalBytes = nonDeleted.reduce((acc, curr) => acc + curr.size, 0);
+            const totalMB = (totalBytes / (1024 * 1024)).toFixed(1);
+            document.getElementById('storageText').innerText = `${totalMB} MB / 10 GB`;
+            const percentage = Math.min((totalBytes / (10 * 1024 * 1024 * 1024)) * 100, 100);
+            document.getElementById('storageBar').style.width = `${Math.max(percentage, 2)}%`;
+
+            // Grid vs Empty
+            if (activeFiles.length === 0) {
+                filesGrid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                
+                if (viewMode === 'grid') {
+                    filesGrid.className = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4";
+                    filesGrid.innerHTML = activeFiles.map(file => `
+                        <div onclick="openPreview('${file.id}')" class="group bg-gray-950 border border-gray-800 hover:border-blue-500/50 rounded-xl p-4 flex flex-col justify-between cursor-pointer transition-all hover:shadow-xl hover:shadow-blue-500/5 relative">
+                            ${file.starred ? '<div class="absolute top-2 right-2 text-amber-400"><i data-lucide="star" class="w-4 h-4 fill-amber-400"></i></div>' : ''}
+                            <div class="h-28 rounded-lg bg-gray-900/80 border border-gray-800/50 flex items-center justify-center overflow-hidden mb-3 relative group-hover:scale-[1.02] transition-transform">
+                                ${file.type === 'image' && file.url 
+                                    ? `<img src="${file.url}" alt="${file.name}" class="w-full h-full object-cover">` 
+                                    : getFileIcon(file.type)}
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-semibold text-gray-200 truncate group-hover:text-blue-400 transition-colors" title="${file.name}">${file.name}</h4>
+                                <div class="flex items-center justify-between text-[11px] text-gray-500 mt-1">
+                                    <span>${formatBytes(file.size)}</span>
+                                    <span>${file.date}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    filesGrid.className = "flex flex-col space-y-2";
+                    filesGrid.innerHTML = activeFiles.map(file => `
+                        <div onclick="openPreview('${file.id}')" class="group bg-gray-950 border border-gray-800 hover:border-blue-500/50 rounded-xl p-3 flex items-center justify-between cursor-pointer transition-all">
+                            <div class="flex items-center space-x-3 truncate">
+                                <div class="w-9 h-9 rounded-lg bg-gray-900 border border-gray-800 flex items-center justify-center shrink-0">
+                                    ${getFileIcon(file.type)}
+                                </div>
+                                <span class="text-sm font-medium text-gray-200 group-hover:text-blue-400 truncate">${file.name}</span>
+                            </div>
+                            <div class="flex items-center space-x-6 text-xs text-gray-400 shrink-0">
+                                ${file.starred ? '<i data-lucide="star" class="w-4 h-4 text-amber-400 fill-amber-400"></i>' : ''}
+                                <span>${formatBytes(file.size)}</span>
+                                <span>${file.date}</span>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-gray-600 group-hover:text-gray-300"></i>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            lucide.createIcons();
+        }
+
+        // Navigation Switching (Mis Archivos, Recientes, Favoritos, Papelera)
+        function switchNav(navType, btnElement) {
+            currentNav = navType;
+            
+            // Actualizar clases de botones del menú lateral
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = "nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-gray-900 hover:text-gray-200 text-sm transition-colors cursor-pointer";
+            });
+            btnElement.className = "nav-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-blue-600/10 text-blue-400 font-medium text-sm transition-colors cursor-pointer";
+
+            // Mostrar u ocultar categorías según la sección
+            if (navType === 'files') {
+                categoriesSection.classList.remove('hidden');
+            } else {
+                categoriesSection.classList.add('hidden');
+                currentCategory = 'all';
+            }
+
+            // Cambiar textos de cabecera
+            const titles = {
+                'files': ['Mis Archivos', 'Arrastra y suelta tus archivos en cualquier lugar para subirlos'],
+                'recent': ['Archivos Recientes', 'Últimos archivos subidos a tu cuenta'],
+                'starred': ['Archivos Favoritos', 'Tus elementos marcados con estrella'],
+                'trash': ['Papelera', 'Archivos eliminados recientemente']
+            };
+
+            viewTitle.innerHTML = `<span>${titles[navType][0]}</span>`;
+            viewSubtitle.innerText = titles[navType][1];
+
+            render();
+        }
+
+        // Category Filtering
+        function filterCategory(cat) {
+            currentCategory = cat;
+            const labels = {
+                'all': 'Todos',
+                'image': 'Imágenes',
+                'document': 'Documentos',
+                'media': 'Multimedia'
+            };
+            currentFilterLabel.innerText = labels[cat] || 'Todos';
+
+            // Actualizar estilo visual de botones de categoría
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.className = "cat-btn w-full flex items-center justify-between px-3 py-2 text-sm text-gray-400 hover:bg-gray-900 hover:text-gray-200 rounded-lg cursor-pointer";
+            });
+            event.currentTarget.className = "cat-btn w-full flex items-center justify-between px-3 py-2 text-sm text-blue-400 bg-blue-500/10 rounded-lg cursor-pointer";
+
+            render();
+        }
+
+        // Handle File Upload Simulation
+        function handleFiles(uploadedFiles) {
+            if (!uploadedFiles || uploadedFiles.length === 0) return;
+
+            const progressContainer = document.getElementById('uploadProgressContainer');
+            const progressBar = document.getElementById('uploadProgressBar');
+            const progressText = document.getElementById('uploadStatusText');
+            const progressPercentage = document.getElementById('uploadPercentage');
+
+            progressContainer.classList.remove('hidden');
+
+            Array.from(uploadedFiles).forEach((file, index) => {
+                let progress = 0;
+                progressText.innerText = `Subiendo "${file.name}"...`;
+
+                const interval = setInterval(() => {
+                    progress += 20;
+                    progressBar.style.width = `${progress}%`;
+                    progressPercentage.innerText = `${progress}%`;
+
+                    if (progress >= 100) {
+                        clearInterval(interval);
+
+                        const fileObj = {
+                            id: Date.now().toString() + index,
+                            name: file.name,
+                            type: getFileType(file),
+                            size: file.size,
+                            date: 'Ahora',
+                            url: file.type.startsWith('image/') ? URL.createObjectURL(file) : null,
+                            starred: false,
+                            deleted: false
+                        };
+
+                        files.unshift(fileObj);
+                        render();
+
+                        setTimeout(() => {
+                            progressContainer.classList.add('hidden');
+                            progressBar.style.width = '0%';
+                        }, 800);
+                    }
+                }, 100);
+            });
+        }
+
+        // Preview Modal Logic
+        function openPreview(id) {
+            const file = files.find(f => f.id === id);
+            if (!file) return;
+
+            activeModalFile = file;
+            modalTitle.innerText = file.name;
+            modalSub.innerText = `${formatBytes(file.size)} • Agregado ${file.date}`;
+
+            // Configurar botón de eliminar/restaurar según esté en papelera
+            if (file.deleted) {
+                deleteBtnText.innerText = "Restaurar";
+                modalDeleteBtn.className = "px-4 py-2 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors cursor-pointer";
+            } else {
+                deleteBtnText.innerText = "Eliminar";
+                modalDeleteBtn.className = "px-4 py-2 bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 rounded-lg text-sm font-medium flex items-center space-x-2 transition-colors cursor-pointer";
+            }
+
+            // Configurar color del botón favorito en modal
+            if (file.starred) {
+                modalStarBtn.className = "px-3 py-2 bg-amber-500/20 text-amber-400 rounded-lg text-sm font-medium flex items-center space-x-1 transition-colors cursor-pointer";
+            } else {
+                modalStarBtn.className = "px-3 py-2 bg-gray-800 text-gray-300 hover:bg-gray-700 rounded-lg text-sm font-medium flex items-center space-x-1 transition-colors cursor-pointer";
+            }
+
+            if (file.type === 'image' && file.url) {
+                modalContent.innerHTML = `<img src="${file.url}" alt="${file.name}" class="max-h-[50vh] object-contain rounded-lg shadow-lg">`;
+            } else {
+                modalContent.innerHTML = `
+                    <div class="text-center space-y-3">
+                        <div class="w-20 h-20 bg-gray-800 rounded-2xl flex items-center justify-center mx-auto text-blue-400">
+                            ${getFileIcon(file.type)}
+                        </div>
+                        <p class="text-sm text-gray-400">Vista previa no disponible para este formato.</p>
+                    </div>
+                `;
+            }
+
+            previewModal.classList.remove('hidden');
+            previewModal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        closeModal.onclick = () => {
+            previewModal.classList.add('hidden');
+            previewModal.classList.remove('flex');
+            activeModalFile = null;
+        };
+
+        // Botón Eliminar / Restaurar
+        modalDeleteBtn.onclick = () => {
+            if (activeModalFile) {
+                if (activeModalFile.deleted) {
+                    activeModalFile.deleted = false; // Restaurar
+                } else {
+                    activeModalFile.deleted = true; // Mandar a papelera
+                }
+                render();
+                closeModal.onclick();
+            }
+        };
+
+        // Botón Favorito dentro del modal
+        modalStarBtn.onclick = () => {
+            if (activeModalFile) {
+                activeModalFile.starred = !activeModalFile.starred;
+                openPreview(activeModalFile.id); // Refrescar modal
+                render();
+            }
+        };
+
+        modalDownloadBtn.onclick = () => {
+            if (activeModalFile) {
+                alert(`Iniciando descarga simulada de: ${activeModalFile.name}`);
+            }
+        };
+
+        // Event Listeners for File Input Buttons
+        uploadBtnTop.onclick = () => fileInput.click();
+        uploadBtnSide.onclick = () => fileInput.click();
+
+        fileInput.onchange = (e) => {
+            handleFiles(e.target.files);
+        };
+
+        // Drag & Drop Events
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropOverlay.classList.remove('opacity-0');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                dropOverlay.classList.add('opacity-0');
+            }, false);
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }, false);
+
+        // Search Input Event
+        searchInput.oninput = (e) => {
+            searchQuery = e.target.value;
+            render();
+        };
+
+        // View Mode Toggle (Grid vs List)
+        document.getElementById('viewGrid').onclick = function() {
+            viewMode = 'grid';
+            this.classList.add('text-blue-400', 'bg-gray-800');
+            document.getElementById('viewList').classList.remove('text-blue-400', 'bg-gray-800');
+            document.getElementById('viewList').classList.add('text-gray-400');
+            render();
+        };
+
+        document.getElementById('viewList').onclick = function() {
+            viewMode = 'list';
+            this.classList.add('text-blue-400', 'bg-gray-800');
+            document.getElementById('viewGrid').classList.remove('text-blue-400', 'bg-gray-800');
+            document.getElementById('viewGrid').classList.add('text-gray-400');
+            render();
+        };
+
+        // Initial Render
+        render();
+    </script>
+</body>
+</html>
